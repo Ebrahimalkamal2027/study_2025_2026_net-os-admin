@@ -1,0 +1,310 @@
+---
+## Author
+author:
+  name: Ибрахим Мохсейн Алькамаль
+  degrees: Student (3 курс)
+  orcid: ""
+  email: 1032225432@pfur.ru
+  affiliation:
+    - name: Российский университет дружбы народов
+      country: Российская Федерация
+      postal-code: 117198
+      city: Москва
+      address: ул. Миклухо-Маклая, д. 6
+## Title
+title: Лабораторная работа №16
+subtitle: "Дисциплина: Администрирование сетевых подсистем "
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Цель работы
+
+## Цель работы
+
+- Получение навыков работы с Fail2ban
+- Настройка базовой защиты от атак типа brute force
+
+# Выполнение лабораторной работы
+
+## Защита с помощью Fail2ban
+
+### Установка Fail2ban
+
+- Установлен пакет `fail2ban` через `dnf`
+- Установлены зависимости: `fail2ban-firewalld`, `fail2ban-selinux`, `fail2ban-sendmail`, `fail2ban-server`
+- Использован репозиторий `epel`
+
+![Установка пакета fail2ban и зависимостей через dnf](image/1.png){#fig-1 width=70%}
+
+---
+
+
+### Запуск и добавление службы в автозагрузку
+
+- Выполнен `systemctl start fail2ban`
+- Выполнен `systemctl enable fail2ban`
+- Создана ссылка в `multi-user.target.wants`
+
+![Запуск службы fail2ban и включение автозагрузки](image/2.png){#fig-2 width=70%}
+
+---
+
+### Контроль журнала событий Fail2ban
+
+- Выполнен `tail -f /var/log/fail2ban.log`
+- Зафиксирован запуск Fail2ban 1.1.0
+- Инициализирован observer
+- Создана база `fail2ban.sqlite3`
+
+![Просмотр журнала fail2ban.log в реальном времени](image/3.png){#fig-3 width=70%}
+
+---
+
+### Создание файла локальной конфигурации
+
+- Создан файл `/etc/fail2ban/jail.d/customisation.local`
+- Выполнено редактирование в `nano`
+
+![Создание и перезапуск службы после настройки](image/5.png){#fig-5 width=70%}
+
+---
+
+### Настройка параметров блокирования и защиты SSH
+
+- В `[DEFAULT]` установлен `bantime = 3600`
+- Активированы `[sshd]`, `[sshd-ddos]`, `[selinux-ssh]`
+- Указан порт `ssh,2022`
+- Для всех секций `enabled = true`
+
+![Конфигурация customisation.local с параметрами bantime и SSH](image/4.png){#fig-4 width=70%}
+
+---
+
+### Перезапуск службы Fail2ban
+
+- Выполнен `systemctl restart fail2ban`
+- Применена новая конфигурация
+
+![Создание и перезапуск службы после настройки](image/5.png){#fig-5 width=70%}
+
+---
+
+### Просмотр журнала после настройки SSH
+
+- Инициализирован backend `pyinotify`
+- Установлены параметры `maxRetry`, `findtime`, `banTime = 3600`
+- Запущены jail-модули `sshd`, `selinux-ssh`, `sshd-ddos`
+
+![Журнал запуска jail-модулей SSH в fail2ban](image/6.png){#fig-6 width=70%}
+
+---
+
+### Включение защиты HTTP
+
+- Активированы jail-модули:
+`apache-auth`, `apache-badbots`, `apache-noscript`, `apache-overflows`,
+`apache-nohome`, `apache-botsearch`, `apache-fakegooglebot`,
+`apache-modsecurity`, `apache-shellshock`
+- Для всех `enabled = true`
+
+![Конфигурация HTTP jail-модулей в customisation.local](image/7.png){#fig-7 width=70%}
+
+---
+
+### Перезапуск после настройки HTTP
+
+- Выполнен `systemctl restart fail2ban`
+- Загружены HTTP jail-модули
+
+![Журнал запуска HTTP jail-модулей](image/8.png){#fig-8 width=70%}
+
+---
+
+### Контроль журнала HTTP-защиты
+
+- В журнале зафиксирован запуск всех `apache-*` jail
+- Подтверждена активация `sshd-ddos`
+
+![Подтверждение запуска HTTP jail-модулей в журнале](image/8.png){#fig-8 width=70%}
+
+---
+
+### Включение защиты почтовых сервисов
+
+- Активированы jail-модули:
+`postfix`, `postfix-rbl`, `dovecot`, `postfix-sasl`
+- Установлено `enabled = true`
+
+![Конфигурация jail-модулей для почтовых сервисов](image/9.png){#fig-9 width=70%}
+
+---
+
+### Перезапуск после настройки почтовых служб
+
+- Выполнен перезапуск `fail2ban`
+- Загружены почтовые jail-модули
+
+![Журнал запуска jail-модулей почтовых сервисов](image/10.png){#fig-10 width=70%}
+
+---
+
+### Контроль журнала почтовой защиты
+
+- Зафиксировано `Jail is in operation now`
+- Подтверждена активация `postfix`, `dovecot`, `postfix-sasl`
+
+![Подтверждение работы jail-модулей почтовых сервисов](image/10.png){#fig-10 width=70%}
+
+
+## Проверка работы Fail2ban
+
+### Просмотр общего статуса
+
+- Выполнен `fail2ban-client status`
+- Активировано 16 jail-модулей
+- Отображены `apache-*`, `sshd`, `dovecot`, `postfix`
+
+![Общий статус fail2ban-client](image/11.png){#fig-11 width=70%}
+
+---
+
+### Просмотр статуса SSH
+
+- Выполнен `fail2ban-client status sshd`
+- `Currently banned: 0`
+- `Total banned: 0`
+
+![Статус jail-модуля sshd до проверки](image/11.png){#fig-11 width=70%}
+
+---
+
+### Установка maxretry
+
+- Выполнено `fail2ban-client set sshd maxretry 2`
+- После 2 ошибок IP должен блокироваться
+
+![Установка параметра maxretry для sshd](image/11.png){#fig-11 width=70%}
+
+---
+
+### Попытка входа с неверным паролем
+
+- С клиента выполнены неудачные попытки SSH-входа
+- Зафиксированы ошибки `Permission denied`
+
+![Попытки входа по SSH с неверным паролем](image/12.png){#fig-12 width=70%}
+
+---
+
+### Проверка блокировки IP
+
+- Выполнен `fail2ban-client status sshd`
+- `Currently banned: 1`
+- IP `192.168.1.30` в списке блокировки
+
+![Блокировка IP-адреса клиента в sshd](image/13.png){#fig-13 width=70%}
+
+---
+
+### Разблокировка IP
+
+- Выполнено `fail2ban-client set sshd unbanip 192.168.1.30`
+
+![Команда разблокировки IP-адреса клиента](image/14.png){#fig-14 width=70%}
+
+---
+
+### Проверка снятия блокировки
+
+- Повторный `status sshd`
+- `Currently banned: 0`
+- Список пуст
+
+![Статус sshd после снятия блокировки](image/15.png){#fig-15 width=70%}
+
+---
+
+### Добавление ignoreip
+
+- В `[DEFAULT]` добавлен
+`ignoreip = 127.0.0.1/8 192.168.1.30`
+- IP клиента исключён из блокировки
+
+![Добавление параметра ignoreip в customisation.local](image/16.png){#fig-16 width=70%}
+
+---
+
+### Перезапуск службы
+
+- Выполнен `systemctl restart fail2ban`
+- Применена новая конфигурация
+
+![Попытка входа с клиента после изменения конфигурации](image/17.png){#fig-17 width=70%}
+
+---
+
+### Просмотр журнала ignoreip
+
+- В журнале отображено
+`Ignore 192.168.1.30 by ip`
+- IP корректно исключён
+
+![Сообщения журнала о игнорировании IP-адреса](image/19.png){#fig-19 width=70%}
+
+---
+
+### Повторная проверка SSH
+
+- Повторные ошибки входа не приводят к блокировке
+- `Currently banned: 0`
+- Список IP пуст
+
+![Статус sshd после включения ignoreip](image/18.png){#fig-18 width=70%}
+
+
+
+## Внесение изменений в настройки внутреннего
+
+### Подготовка конфигурации
+
+- Создан каталог `protect/etc/fail2ban/jail.d`
+- Скопирован `customisation.local`
+
+![Создание каталога protect и копирование customisation.local](image/20.png){#fig-20 width=70%}
+
+---
+
+### Создание скрипта protect.sh
+
+- Установка `fail2ban`
+- Копирование конфигурации в `/etc`
+- Выполнен `restorecon -vR /etc`
+- Включена и запущена служба
+
+![Содержимое скрипта protect.sh](image/21.png){#fig-21 width=70%}
+
+---
+
+### Добавление provisioning в Vagrantfile
+
+- Добавлен блок `server.vm.provision`
+- Указан путь `provision/server/protect.sh`
+- Использован `preserve_order: true`
+
+![Добавление блока provision в Vagrantfile](image/22.png){#fig-22 width=70%}
+
+
+
+# Выводы
+## Выводы
+
+- Установлен и настроен Fail2ban
+- Реализована защита SSH, HTTP и почтовых сервисов
+- Проверена блокировка IP при превышении `maxretry`
+- Выполнена ручная разблокировка
+- Настроен параметр `ignoreip`
+- Подтверждена корректная работа jail-модулей
+- Настройка автоматизирована через provisioning
+- Обеспечена воспроизводимая базовая защита от brute force
