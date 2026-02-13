@@ -1,0 +1,233 @@
+---
+## Author
+author:
+  name: Ибрахим Мохсейн Алькамаль
+  degrees: Student (3 курс)
+  orcid: ""
+  email: 1032225432@pfur.ru
+  affiliation:
+    - name: Российский университет дружбы народов
+      country: Российская Федерация
+      postal-code: 117198
+      city: Москва
+      address: ул. Миклухо-Маклая, д. 6
+## Title
+title: Лабораторная работа №1
+subtitle: "Дисциплина: Администрирование сетевых подсистем "
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Цель работы
+
+## Цель работы
+
+- Приобретение практических навыков установки Rocky Linux на виртуальную машину с использованием Vagrant
+
+# Выполнение лабораторной работы
+
+##  Конфигурационные файлы
+
+- Созданы каталоги `C:\work\alkamal\packer` и `C:\work\alkamal\vagrant`
+- Подготовлена структура для сборки box-файла
+
+![Структура рабочего каталога с подкаталогами packer и vagrant](image/1.png){#fig-1 width=70%}
+
+---
+
+- В каталоге `packer` размещены ISO-образ, `packer.exe`, HCL-файл и каталог `http`
+- Структура соответствует требованиям проекта
+
+![Содержимое каталога packer с ISO-образом и HCL-файлом](image/2.png){#fig-2 width=70%}
+
+---
+
+- Файл `vagrant-rocky.pkr.hcl` содержит блок `packer` и `required_plugins`
+- Заданы переменные версии, диска, ISO, архитектуры и SSH
+- В каталоге `http` размещён файл `ks.cfg`
+- Определены параметры автоматической установки
+
+![Файл vagrant-rocky.pkr.hcl с описанием переменных и плагинов](image/3.png){#fig-3 width=70%}
+
+---
+
+![Файл ks.cfg с параметрами автоматической установки Rocky Linux](image/4.png){#fig-4 width=70%}
+
+---
+
+- В каталоге `vagrant` создан файл `Vagrantfile`
+- Определена ВМ `server` с box `rocky9`
+- Настроены IP 192.168.1.1 и параметры VirtualBox
+- Создан каталог `provision` с подкаталогами `default`, `server`, `client`
+
+![Файл Vagrantfile с конфигурацией виртуальной машины server](image/5.png){#fig-5 width=70%}
+
+---
+
+![Структура каталога provision с подкаталогами default, server и client](image/6.png){#fig-6 width=70%}
+
+---
+
+- В каталогах размещены скрипты-заглушки `01-dummy.sh`
+
+![Скрипты-заглушки 01-dummy.sh в каталогах default, server и client](image/7.png){#fig-7 width=70%}
+
+---
+
+![Скрипты-заглушки 01-dummy.sh в каталогах default, server и client](image/7-1.png){#fig-7 width=70%}
+
+---
+
+![Скрипты-заглушки 01-dummy.sh в каталогах default, server и client](image/7-2.png){#fig-7 width=70%}
+
+---
+
+- В `default` добавлен `01-user.sh`
+- Создание пользователя `alkamal`
+- Добавление в группу `wheel`
+- Настройка PS1
+
+![Скрипт 01-user.sh для создания пользователя и настройки окружения](image/8.png){#fig-8 width=70%}
+
+---
+
+- В `default` добавлен `01-hostname.sh`
+- Установка FQDN вида `*.alkamal.net`
+
+![Скрипт 01-hostname.sh для установки доменного имени хоста](image/9.png){#fig-9 width=70%}
+
+---
+
+- В `server` размещён `02-forward.sh`
+- Включение IP-forwarding
+- Настройка masquerading через firewalld
+
+![Скрипт 02-forward.sh для включения IP-forwarding и masquerading](image/10.png){#fig-10 width=70%}
+
+---
+
+- В `client` размещён `01-routing.sh`
+- Настройка шлюза 192.168.1.1
+- Конфигурация интерфейсов через nmcli
+
+![Скрипт 01-routing.sh для настройки маршрутизации клиента](image/11.png){#fig-11 width=70%}
+
+
+## Развёртывание лабораторного стенда на ОС Windows
+
+- Выполнены `packer.exe init` и `packer.exe build`
+- Произведена автоматическая установка Rocky Linux
+- Сформирован box-файл
+
+![Выполнение команд packer.exe init и packer.exe build](image/12.png){#fig-12 width=70%}
+
+---
+
+- Создан файл `vagrant-virtualbox-rocky-9-x86_64.box`
+- Подтверждена корректная сборка образа
+
+![Сформированный box-файл vagrant-virtualbox-rocky-9-x86\_64.box](image/13.png){#fig-13 width=70%}
+
+---
+
+- Выполнена регистрация box через `vagrant box add rocky9`
+- Образ добавлен под именем `rocky9`
+
+![Регистрация box-файла в Vagrant](image/14.png){#fig-14 width=70%}
+
+---
+
+- Запуск `vagrant up server`
+- Инициализация сети и provisioning
+
+![Запуск виртуальной машины server через vagrant up](image/15.png){#fig-15 width=70%}
+
+---
+
+- Запуск `vagrant up client`
+- Настройка сетевых адаптеров
+- Подключение по SSH
+
+![Запуск виртуальной машины client через vagrant up](image/16.png){#fig-16 width=70%}
+
+---
+
+- Обе ВМ успешно загружены в VirtualBox
+- Выполнен вход под пользователем `vagrant`
+
+![Графический вход в систему на виртуальной машине server](image/17.png){#fig-17 width=70%}
+
+---
+
+![Графический вход в систему на виртуальной машине client](image/17-1.png){#fig-17-1 width=70%}
+
+---
+
+- Подключение через `vagrant ssh server`
+- Переход к пользователю `alkamal`
+- Аналогичное подключение к клиенту
+
+![Подключение по SSH к server и переход к пользователю alkamal](image/18.png){#fig-18 width=70%}
+
+---
+
+![Подключение по SSH к client и переход к пользователю alkamal](image/18-1.png){#fig-18-1 width=70%}
+
+---
+
+- Выполнены `vagrant halt server` и `vagrant halt client`
+- Корректное завершение работы ВМ
+
+![Остановка виртуальных машин server и client](image/19.png){#fig-19 width=70%}
+
+
+
+## Внесение изменений в настройки внутреннего окружения виртуальной машины
+
+- В `Vagrantfile` добавлены блоки `common user` и `common hostname`
+- Обеспечено выполнение `01-user.sh` и `01-hostname.sh`
+
+![Фрагмент Vagrantfile с блоками common user и common hostname](image/20.png){#fig-20 width=70%}
+
+---
+
+- Выполнены `vagrant up --provision` для server и client
+- Повторный запуск provisioning
+- Подтверждено существование пользователя `alkamal`
+
+![Повторный запуск server с ключом --provision](image/21.png){#fig-21 width=70%}
+
+---
+
+![Повторный запуск client с ключом --provision](image/22.png){#fig-22 width=70%}
+
+---
+
+- Выполнен вход под пользователем `alkamal`
+- Проверено отображение FQDN в приглашении терминала
+- Подтверждена корректная настройка hostname
+
+![Графический вход под пользователем alkamal на сервере](image/23.png){#fig-23 width=70%}
+
+---
+
+![Графический вход под пользователем alkamal на клиенте](image/23-1.png){#fig-23-1 width=70%}
+
+---
+
+![Проверка SSH-подключения и отображения приглашения пользователя](image/24.png){#fig-24 width=70%}
+
+# Выводы
+
+## Выводы
+
+- Выполнена автоматическая сборка box-файла Rocky Linux через Packer
+- Зарегистрирован образ в Vagrant
+- Развёрнуты виртуальные машины server и client
+- Применены provisioning-скрипты
+- Настроены пользователь и hostname
+- Подтверждена работа SSH и сетевых параметров
+- Лабораторный стенд успешно подготовлен к дальнейшей работе
+
+
