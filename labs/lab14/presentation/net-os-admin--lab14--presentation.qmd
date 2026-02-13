@@ -1,0 +1,275 @@
+---
+## Author
+author:
+  name: Ибрахим Мохсейн Алькамаль
+  degrees: Student (3 курс)
+  orcid: ""
+  email: 1032225432@pfur.ru
+  affiliation:
+    - name: Российский университет дружбы народов
+      country: Российская Федерация
+      postal-code: 117198
+      city: Москва
+      address: ул. Миклухо-Маклая, д. 6
+## Title
+title: Лабораторная работа №14
+subtitle: "Дисциплина: Администрирование сетевых подсистем "
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Цель работы
+## Цель работы
+
+- Приобретение навыков настройки доступа групп пользователей к общим ресурсам по SMB
+- Организация совместного доступа с разграничением прав
+
+# Выполнение лабораторной работы
+
+## Настройка сервера Samba
+
+- Установлены пакеты `samba`, `samba-client`, `cifs-utils` через `dnf`
+- Транзакция установки завершена успешно
+
+![Установка пакетов samba, samba-client и cifs-utils с помощью dnf](image/1.png){#fig-1 width=70%}
+
+---
+
+- Создана группа `sambagroup` (GID 1010)
+- Пользователь `alkamal` добавлен в группу
+- Создан каталог `/srv/sambashare`
+
+![Создание группы sambagroup, добавление пользователя и каталога /srv/sambashare](image/2.png){#fig-2 width=70%}
+
+---
+
+- В `smb.conf` изменён `workgroup = ALKAMAL-NET`
+- Добавлен раздел `[sambashare]`
+- Указан путь `/srv/sambashare`
+- Задан `write list = @sambagroup`
+
+![Редактирование файла smb.conf: настройка workgroup и раздела sambashare](image/3.png){#fig-3 width=70%}
+
+---
+
+- Выполнена проверка `testparm`
+- Ошибки конфигурации отсутствуют
+
+![Проверка конфигурации Samba с помощью testparm](image/4.png){#fig-4 width=70%}
+
+---
+
+- Запущена служба `smb`
+- Добавлена в автозагрузку
+- Статус `active (running)`
+
+![Запуск и проверка статуса службы smb через systemctl](image/5.png){#fig-5 width=70%}
+
+---
+
+- Выполнено `smbclient -L //server`
+- Отображены ресурсы `print$`, `sambashare`, `IPC$`
+
+![Вывод команды smbclient -L //server со списком общих ресурсов](image/6.png){#fig-6 width=70%}
+
+---
+
+- Проверен файл `samba.xml`
+- Используются порты TCP 139 и 445
+
+![Содержимое файла samba.xml с описанием портов 139 и 445](image/7.png){#fig-7 width=70%}
+
+---
+
+- В `firewalld` добавлена служба `samba`
+- Применены постоянные правила
+- Выполнен `reload`
+
+![Добавление службы samba в firewalld и перезагрузка конфигурации](image/8.png){#fig-8 width=70%}
+
+---
+
+- Изменена группа каталога на `sambagroup`
+- Установлены права `g=rwx`
+- Проверен SELinux-контекст
+
+![Изменение группы и прав каталога sambashare, просмотр контекста SELinux](image/9.png){#fig-9 width=70%}
+
+---
+
+- Назначен контекст `samba_share_t`
+- Применён `restorecon`
+
+![Настройка SELinux-контекста samba\_share\_t для каталога sambashare](image/10.png){#fig-10 width=70%}
+
+---
+
+- Проверен обновлённый SELinux-контекст
+- Тип `samba_share_t` установлен
+
+![Проверка изменённого SELinux-контекста каталога sambashare](image/11.png){#fig-11 width=70%}
+
+---
+
+- Установлен булев параметр `samba_export_all_rw`
+- Разрешён экспорт на чтение и запись
+
+![Установка SELinux-параметра samba\_export\_all\_rw](image/12.png){#fig-12 width=70%}
+
+---
+
+- Проверена команда `id`
+- Пользователь входит в `sambagroup`
+
+![Вывод команды id с указанием UID и групп пользователя](image/13.png){#fig-13 width=70%}
+
+---
+
+- Создан файл `alkamal@server.txt` в `/srv/sambashare`
+- Выполнено `smbpasswd -a alkamal`
+- Пользователь добавлен в базу Samba
+
+![Создание файла в каталоге sambashare и добавление пользователя в базу Samba](image/14.png){#fig-14 width=70%}
+
+
+
+## Монтирование файловой системы Samba на клиенте
+
+- Установлены `samba-client` и `cifs-utils`
+- Транзакция завершена успешно
+
+![Установка пакетов samba-client и cifs-utils на клиенте](image/15.png){#fig-15 width=70%}
+
+---
+
+- Добавлена служба `samba-client` в firewall
+- Применены постоянные правила
+
+![Настройка службы samba-client в firewalld на клиенте](image/16.png){#fig-16 width=70%}
+
+---
+
+- Создана группа `sambagroup` (GID 1010)
+- Пользователь `alkamal` добавлен в группу
+
+![Создание группы sambagroup и добавление пользователя на клиенте](image/17.png){#fig-17 width=70%}
+
+---
+
+- В `smb.conf` установлен `workgroup = ALKAMAL-NET`
+
+![Изменение параметра workgroup в smb.conf на клиенте](image/18.png){#fig-18 width=70%}
+
+---
+
+- Выполнено `smbclient -L //server`
+- Анонимный вход выполнен успешно
+
+![Просмотр ресурсов сервера через smbclient под анонимной учётной записью](image/19.png){#fig-19 width=70%}
+
+---
+
+- Создан каталог `/mnt/samba`
+- Выполнено монтирование `//server/sambashare`
+- Указаны параметры `username`, `uid`, `gid`
+
+![Монтирование ресурса //server/sambashare в /mnt/samba](image/20.png){#fig-20 width=70%}
+
+---
+
+- В `/mnt/samba` создан файл `alkamal@client.txt`
+- Подтверждены права записи
+- Выполнен `umount`
+
+![Создание файла на смонтированном ресурсе и размонтирование](image/21.png){#fig-21 width=70%}
+
+---
+
+- Создан файл `/etc/samba/smbusers`
+- Права `600`
+- Указаны `username` и `password`
+
+![Создание файла smbusers с учётными данными](image/23.png){#fig-23 width=70%}
+
+---
+
+- В `/etc/fstab` добавлена запись для `//server/sambashare`
+- Тип `cifs`, указаны `uid`, `gid`, `credentials`, `_netdev`
+
+![Добавление записи в /etc/fstab для автоматического монтирования Samba](image/24.png){#fig-24 width=70%}
+
+---
+
+- Выполнено `mount -a`
+- Применена конфигурация
+
+![Применение конфигурации fstab с помощью mount -a](image/25.png){#fig-25 width=70%}
+
+---
+
+- Проверено наличие `/mnt/samba`
+- Ресурс подключён успешно
+
+![Проверка наличия точки монтирования /mnt/samba](image/26.png){#fig-26 width=70%}
+
+
+
+## Внесение изменений в настройки внутреннего
+
+- В `/vagrant/provision/server` создан каталог `smb/etc/samba`
+- Скопирован `smb.conf`
+
+![Создание каталога smb и копирование smb.conf на сервере](image/27.png){#fig-27 width=70%}
+
+---
+
+- Создан скрипт `smb.sh` для сервера
+- Реализованы установка, настройка firewall, SELinux
+- Создана группа и добавлен пользователь
+- Запущена служба `smb`
+
+![Содержимое скрипта smb.sh для сервера](image/28.png){#fig-28 width=70%}
+
+---
+
+- На клиенте создан каталог `smb/etc/samba`
+- Скопированы `smb.conf` и `smbusers`
+
+![Подготовка каталога smb и копирование конфигурационных файлов на клиенте](image/29.png){#fig-29 width=70%}
+
+---
+
+- Создан скрипт `smb.sh` для клиента
+- Реализованы установка пакетов, настройка firewall
+- Добавлена запись в `/etc/fstab`
+- Выполнено монтирование ресурса
+
+![Содержимое скрипта smb.sh для клиента](image/30.png){#fig-30 width=70%}
+
+---
+
+- В `Vagrantfile` добавлен provision-блок для server
+
+![Добавление provision-блока для сервера в Vagrantfile](image/31.png){#fig-31 width=70%}
+
+---
+
+- Добавлен provision-блок для client
+- Обеспечена автоматическая настройка
+
+![Добавление provision-блока для клиента в Vagrantfile](image/32.png){#fig-32 width=70%}
+
+
+
+# Выводы
+## Выводы
+
+- Настроен сервер Samba с общим ресурсом `/srv/sambashare`
+- Создана группа `sambagroup` и настроены права доступа
+- Назначен SELinux-контекст `samba_share_t`
+- Разрешён доступ через firewall
+- Настроено монтирование ресурса на клиенте через CIFS
+- Реализовано автоматическое подключение через `/etc/fstab`
+- Выполнена автоматизация конфигурации через provisioning-скрипты
+- Подтверждена возможность чтения и записи файлов по SMB
